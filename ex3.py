@@ -44,10 +44,19 @@ def queryFour():
 	for row in q:
 		print row[0].name, row[1]
 
+########### Below are non tasks query, this is for tests only ##########
+
 def queryFive():
 	q = session.query(Profile).all()
 	
 	for row in q:
-		print row
+		print row.id, row.description, row.specialNeeds, row.puppy_id 
+
+# def queryFive():
+# 	q = session.query(Puppy, Profile).join(Profile).all()
+
+# 	for row in q:
+# 		print row
 
 queryFive()
+
