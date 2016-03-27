@@ -2,8 +2,9 @@ import os
 import sys
 from sqlalchemy import Table, Column, Date, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, column_property
 from sqlalchemy import create_engine
+from sqlalchemy import select, func
 
 Base = declarative_base()
 
@@ -11,17 +12,6 @@ association_table = Table('association', Base.metadata,
     Column('adopter_id', Integer, ForeignKey('adopter.id')),
     Column('puppy_id', Integer, ForeignKey('puppy.id'))
 )
-
-class Shelter(Base):
-    __tablename__ = 'shelter'
-
-    name = Column(String(80), nullable=False)
-    address = Column(String(250), nullable=False)
-    city = Column(String(80), nullable=False)
-    state = Column(String(20), nullable=False)
-    zipCode = Column(String(10), nullable=False)
-    website = Column(String, nullable=False)
-    id = Column(Integer, primary_key=True)
 
 class Puppy(Base):
     __tablename__ = 'puppy'
@@ -33,10 +23,29 @@ class Puppy(Base):
     weight = Column(Float, nullable=False)
     picture = Column(String)
     shelter_id = Column(Integer, ForeignKey('shelter.id'))
-    shelter = relationship(Shelter)
+    # shelter = relationship(Shelter)
     profile = relationship('Profile', uselist=False, back_populates="puppy")
     adopters = relationship("Adopter", secondary=association_table,
         back_populates="puppies")
+
+class Shelter(Base):
+    __tablename__ = 'shelter'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(80), nullable=False)
+    address = Column(String(250), nullable=False)
+    city = Column(String(80), nullable=False)
+    state = Column(String(20), nullable=False)
+    zipCode = Column(String(10), nullable=False)
+    website = Column(String, nullable=False)
+    maximum_capacity = Column(String)
+
+    current_occupancy = column_property(
+        select([func.count(Puppy.id)]).\
+        where(Puppy.shelter_id==id).\
+        correlate_except(Puppy)
+        )
+
 
 class Profile(Base):
     __tablename__ = 'profile'
